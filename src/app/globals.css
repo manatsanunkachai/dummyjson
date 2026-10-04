@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f6f3e9;
+  --foreground: #3f4635;
+  --card: #fffdf7;
+  --matcha: #71855f;
+  --matcha-dark: #536744;
+  --matcha-light: #dfe7d5;
+  --cream: #faf8f0;
+  --border: #d9ddcc;
+  --muted: #7b806f;
+  --danger: #a85c52;
 }
 
 @theme inline {
@@ -12,15 +20,170 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
+  margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* หน้าหลัก */
+
+main {
+  width: min(1100px, calc(100% - 32px));
+  margin: 40px auto;
+  padding: 32px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(63, 70, 53, 0.08);
+}
+
+/* หัวข้อ */
+
+h1 {
+  margin: 0 0 28px;
+  color: var(--matcha-dark);
+  font-size: 32px;
+  font-weight: 700;
+}
+
+h2,
+h3 {
+  color: var(--matcha-dark);
+}
+
+/* Form */
+
+form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+label {
+  margin-top: 8px;
+  color: var(--matcha-dark);
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--cream);
+  color: var(--foreground);
+  font-size: 15px;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--matcha);
+  box-shadow: 0 0 0 3px var(--matcha-light);
+}
+
+/* ปุ่ม */
+
+button {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  background: var(--matcha);
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  background: var(--matcha-dark);
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ข้อความแจ้งเตือน */
+
+[role="alert"] {
+  color: var(--danger);
+  font-size: 14px;
+}
+
+/* ตารางสินค้า */
+
+table {
+  width: 100%;
+  margin-top: 24px;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--cream);
+}
+
+thead {
+  background: var(--matcha-light);
+}
+
+th {
+  padding: 14px 12px;
+  color: var(--matcha-dark);
+  font-weight: 700;
+  text-align: left;
+}
+
+td {
+  padding: 13px 12px;
+  border-top: 1px solid var(--border);
+}
+
+tbody tr:hover {
+  background: #f1f4ea;
+}
+
+/* รูปสินค้า */
+
+td img {
+  display: block;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* ปุ่มจัดการ */
+
+td button {
+  margin-right: 6px;
+}
+
+td button:last-child {
+  background: #b8756c;
+}
+
+td button:last-child:hover {
+  background: #965b54;
+}
+
+/* ข้อความสถานะ */
+
+section[aria-live="polite"] {
+  margin-top: 24px;
+}
+
+section[aria-live="polite"] p {
+  color: var(--muted);
 }
