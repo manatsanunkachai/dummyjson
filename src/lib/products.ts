@@ -1,103 +1,69 @@
-import { z } from "zod";
+export type Product = {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+};
 
-// รายชื่อหมวดหมู่ คัดลอกจาก
-// https://dummyjson.com/products/category-list
-export const CATEGORIES = [
-  "beauty", "fragrances", "furniture", "groceries",
-  "home-decoration", "kitchen-accessories", "laptops",
-  "mens-shirts", "mens-shoes", "mens-watches",
-  "mobile-accessories", "motorcycle", "skin-care",
-  "smartphones", "sports-accessories", "sunglasses",
-  "tablets", "tops", "vehicle", "womens-bags",
-  "womens-dresses", "womens-jewellery", "womens-shoes", "womens-watches",
-] as const;
+const initialProducts: Product[] = [
+  {
+    id: "p001",
+    name: "Mechanical Keyboard",
+    price: 2590,
+    description: "คีย์บอร์ด Mechanical สำหรับทำงานและเล่นเกม",
+  },
+  {
+    id: "p002",
+    name: "Wireless Mouse",
+    price: 1290,
+    description: "เมาส์ไร้สายใช้งานสะดวก",
+  },
+  {
+    id: "p003",
+    name: "USB-C Hub",
+    price: 1890,
+    description: "USB-C Hub สำหรับเชื่อมต่ออุปกรณ์หลายชนิด",
+  },
+];
 
-export const ProductSchema = z.object({
-  id: z.number(),
-  // เติม: เงื่อนไขที่บังคับว่าข้อความต้องยาวอย่างน้อยเท่าใด
-  title: z.string().trim().min(1, "กรุณากรอกชื่อสินค้า"),
-  price: z.number({ error: "กรุณากรอกราคา" }).min(0, "ราคาต้องไม่ติดลบ"),
-  stock: z
-    .number({ error: "กรุณากรอกจำนวนคงเหลือ" })
-    .int("จำนวนคงเหลือต้องเป็นจำนวนเต็ม")
-    .min(0, "จำนวนคงเหลือต้องไม่ติดลบ"),
-  category: z.enum(CATEGORIES, { error: "กรุณาเลือกหมวดหมู่" }),
-  description: z.string().trim().optional(),
-  thumbnail: z.string().optional(),
-});
+const globalForProducts = globalThis as typeof globalThis & {
+  demoProducts?: Product[];
+};
 
-export const ProductListSchema = z.object({
-  products: z.array(ProductSchema),
-  total: z.number(),
-  skip: z.number(),
-  limit: z.number(),
-});
+const products = globalForProducts.demoProducts ??= [...initialProducts];
 
-// เติม: ตัวช่วยของ Zod ที่อ่าน Type ออกมาจาก Schema
-export type Product     = z.infer<typeof ProductSchema>;
-export type ProductList = z.infer<typeof ProductListSchema>;
-export const ProductDraftSchema = ProductSchema.omit({ id: true });
-export type ProductDraft = z.infer<typeof ProductDraftSchema>;
+export async function getProducts(): Promise<Product[]> {
+  return products;
+}
 
-const API_BASE = "https://dummyjson.com"; 
- 
-export const SORT_FIELDS = ["title", "price", "stock"] as const; 
- 
-// ลบ type SearchQuery ที่ประกาศไว้ในหัวข้อ 1.4 ออก แล้วใช้สองบล็อกนี้แทน
-export const SearchQuerySchema = z.object({
-  q: z.string().trim(),
-  limit: z
-    .number({ error: "กรุณากรอกจำนวนรายการ" })
-    .int("จำนวนรายการต้องเป็นจำนวนเต็ม")
-    .min(1, "อย่างน้อย 1 รายการ")
-    .max(30, "ไม่เกิน 30 รายการ"),
-  sortBy: z.enum(SORT_FIELDS),
-});
+export async function getProduct(id: string): Promise<Product | undefined> {
+  return products.find((product) => product.id === id);
+}
 
-export type SearchQuery = z.infer<typeof SearchQuerySchema>; 
- 
-export const defaultQuery: SearchQuery = { 
-  q: "", 
-  limit: 10, 
-  sortBy: "title", 
-}; 
- 
-export function buildProductUrl(query: SearchQuery): string { 
-  const params = new URLSearchParams(); 
-  params.set("q", query.q); 
-  // เติม: เมธอดที่กำหนดค่าให้พารามิเตอร์หนึ่งตัว 
-  params.set("limit", String(query.limit)); 
-  params.set("sortBy", query.sortBy); 
-  params.set("order", "asc");
-  params.set("select", "id,title,price,stock,category,thumbnail"); 
-  
-  let url = `${API_BASE}/products/search?${params.toString()}`;
-  console.log("เรียก URL:", url); 
-  return url;
-} 
+export async function updateProduct(
+  id: string,
+  data: Omit<Product, "id">
+): Promise<Product | undefined> {
+  const product = products.find((item) => item.id === id);
 
-
-export async function fetchProducts(
-  query: SearchQuery
-): Promise<ProductList> {
-  const response = await fetch(buildProductUrl(query));
-  console.log("สถานะการตอบกลับ:", response.status, response.statusText);
-
-  // เติม: ค่าที่บอกว่าสถานะการตอบกลับอยู่ในช่วง 200 ถึง 299 หรือไม่
-  if (!response.ok) {
-    throw new Error(`เรียกข้อมูลไม่สำเร็จ สถานะ ${response.status}`);
+  if (!product) {
+    return undefined;
   }
 
-  // เติม: เมธอดที่อ่านเนื้อหาการตอบกลับเป็น JSON
-  const data = await response.json();
-  console.log("ข้อมูลที่ได้รับ:", data);
+  product.name = data.name;
+  product.price = data.price;
+  product.description = data.description;
 
-  // เติม: เมธอดที่ตรวจข้อมูลแล้วคืนผลลัพธ์แทนการโยน Error
-  const result = ProductListSchema.safeParse(data);
+  return product;
+}
 
-  if (!result.success) {
-    throw new Error("รูปแบบข้อมูลที่ได้รับไม่ตรงกับที่กำหนดไว้");
+export async function deleteProduct(id: string): Promise<boolean> {
+  const index = products.findIndex((product) => product.id === id);
+
+  if (index === -1) {
+    return false;
   }
 
-  return result.data;
+  products.splice(index, 1);
+  return true;
 }
